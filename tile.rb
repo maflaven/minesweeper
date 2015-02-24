@@ -1,3 +1,5 @@
+require 'colorize'
+
 class Tile
   attr_writer :bomb
   attr_accessor :neighbors, :flagged
@@ -13,17 +15,17 @@ class Tile
   def render
     unless @revealed
       if @flagged
-        return "F"
+        return "F".colorize(:red)
       else
         return "*"
       end
     else #revealed
       if @bomb
-        return "B"
+        return "B".colorize(:orange)
       elsif 0 ==  bombs_nearby
         return '_'
       else
-        return "#{bombs_nearby}"
+        return "#{bombs_nearby}".colorize(:blue)
       end
     end
   end
