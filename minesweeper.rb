@@ -2,6 +2,7 @@ require 'byebug'
 require 'yaml'
 require_relative './board'
 require_relative './tile'
+require_relative './readingchars.rb'
 
 class Game
   attr_reader :board
@@ -11,6 +12,7 @@ class Game
   end
 
   def display(highlight = nil)
+    puts("\ec")
     puts @board.render(highlight)
   end
 
@@ -38,17 +40,38 @@ class Game
     until won? || lost?
       display
 
-      puts "Enter a coordinate (e.g. 5 6), or save (s):"
-      prompt = gets.chomp
-      if prompt.downcase == 's'
+      puts "Save? (y/n)"
+      if gets.chomp.downcase ==  'y'
         save_game
         return nil
-      else
-        coordinates = parse_coordinates(prompt)
-
-        next if coordinates.count != 2 || @board.coordinates_in_bounds(*coordinates)
-        display(coordinates)
       end
+
+      temp_coords = [0,0]
+      coordinates = [0,0]
+
+      loop do
+        display(temp_coords)
+        c = read_char
+        case c
+        when "\e[A" #up
+          temp_coords[1] -= 1
+        when "\e[B" #down
+          temp_coords[1] += 1
+        when "\e[C" #right
+          temp_coords[0] += 1
+        when "\e[D" #left
+          temp_coords[0] -= 1
+        when "\r"
+          coordinates = temp_coords
+          break
+        else
+          #nothing
+        end
+      end
+
+      #Check for valid coordinates
+      next if @board.coordinates_in_bounds(*coordinates)
+      display(coordinates)
 
       puts "Reveal: r, Flag: f, Unflag: u"
       choice = gets.chomp
