@@ -10,9 +10,9 @@ class Board
 
 
   def initialize(options = {})
-    options[:x_size] ||= 9
-    options[:y_size] ||= 9
-    @grid = Array.new(options[:y_size]) { Array.new(options[:x_size]) { Tile.new } }
+    @horizontal_size = options[:x_size] || 9
+    @vertical_size   = options[:y_size] || 9
+    @grid = Array.new(@vertical_size) { Array.new(@horizontal_size) { Tile.new } }
     @num_bombs = options[:bombs] || 12
     seed_bombs
     populate_neighbors
@@ -42,8 +42,8 @@ class Board
     return render_string
   end
 
-  def [](row, column)
-    @grid[column][row]
+  def [](column, row)
+    @grid[row][column]
   end
 
   def solved?
@@ -62,11 +62,15 @@ class Board
     end
   end
 
+  def coordinates_in_bounds(x,y)
+    x < 0 || x >= @horizontal_size || y < 0 || y >= @vertical_size
+  end
+
   private
   def seed_bombs
     bombs_left = @num_bombs
     #bombs_placed = 0
-    spaces_left = @grid.count * @grid.first.count
+    spaces_left = @vertical_size * @horizontal_size
 
     @grid.each do |row|
       row.each do |tile|
@@ -83,16 +87,16 @@ class Board
   end
 
   def populate_neighbors
-    @grid.each_with_index do |row, row_index|
-      row.each_with_index do |tile, column_index|
-        neighbors = CONNECTION_DIFFS.map do |diff|
-          [column_index + diff[0], row_index + diff[1]]
-        end.delete_if do |x, y|
-          x < 0 || x >= @grid.count || y < 0 || y >= @grid.count
-        end
-        tile.neighbors = neighbors.map { |x, y| @grid[y][x] }
+    # debugger
+    @grid.each_with_index do |row, vertical_index|
+      row.each_with_index do |tile, horizontal_index|
+
+        tile.neighbors =
+                  CONNECTION_DIFFS.map { |diff| [horizontal_index + diff[0],
+                                                 vertical_index + diff[1]]
+                 }.delete_if { |x, y| coordinates_in_bounds(x,y)
+                 }.map {|x, y| @grid[y][x] }
       end
     end
-
   end
 end
